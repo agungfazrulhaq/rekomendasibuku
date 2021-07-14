@@ -88,6 +88,10 @@
         </div>
       </div>
     </nav>
+    {% for index,rat in ratings_given.iterrows() %}
+    <h1>{{ rat['book_id'] }} {{ rat['rating'] }}</h1>
+    {% endfor %}
+    <h1>{{ ratings_given['book_id'].unique() }}</h1>
     <br>
     <div class="container-lg">
     <form class="d-flex" style="width:250px;">
@@ -95,19 +99,33 @@
       <button class="btn btn-outline-success" type="submit">Search</button>
     </form>
     </div>
-    <form action="/step2" method="POST">
+    <form action="/giveratings" method="POST">
+      <input type="hidden" name="page" value="{{ page }}">
     <div class="d-flex flex-wrap container-lg">
+      {% set k = [] %}
       {% for key,value in books.iterrows() %}
       <div class="card" style="width: 12rem; margin-left:20px; margin-top:20px;">
         <img src="{{ value['image_url'] }}" style="object-fit:cover;height:250px;" class="card-img-top" alt="...">
         <div class="card-body">
           <h6 class="card-title">{{ value['original_title'] }}</h6>
-          <p style="font-size: small;">{{ value['authors'] }}</p>
-          <div class="rating"> 
-            <input type="radio" name="rating-{{ value['book_id'] }}" value="5-{{ value['book_id'] }}" id="5-{{ value['book_id'] }}">
-            <label for="5-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
-            
-            <input type="radio" name="rating-{{ value['book_id'] }}" value="4-{{ value['book_id'] }}" id="4-{{ value['book_id'] }}">
+          <p style="font-size: small;">{{ value['authors'] }} - {{ value['original_publication_year']|int }}</p>
+          <div class="rating">
+            {% for j in range(5) %}
+              {% if value['book_id']|string in ratings_given['book_id'].unique() %}
+                {% if ratings_given.loc[ratings_given['book_id'] == value['book_id']|string, 'rating'].values[0]|int == 5-j %}
+              <input type="radio" name="rating[{{ k|length }}]" checked="checked" value="{{ 5-j }}-{{ value['book_id'] }}" id="{{5-j}}-{{ value['book_id'] }}">
+              <label for="{{ 5-j }}-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
+              {% else %}
+              <input type="radio" name="rating[{{ k|length }}]" value="{{ 5-j }}-{{ value['book_id'] }}" id="{{5-j}}-{{ value['book_id'] }}">
+              <label for="{{ 5-j }}-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
+              {% endif %}
+              {% else %}
+              <input type="radio" name="rating[{{ k|length }}]" value="{{ 5-j }}-{{ value['book_id'] }}" id="{{5-j}}-{{ value['book_id'] }}">
+              <label for="{{ 5-j }}-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
+              {% endif %}
+            {% endfor %}
+            {% set __ = k.append(1) %}
+            <!-- <input type="radio" name="rating-{{ value['book_id'] }}" value="4-{{ value['book_id'] }}" id="4-{{ value['book_id'] }}">
             <label for="4-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
             
             <input type="radio" name="rating-{{ value['book_id'] }}" value="3-{{ value['book_id'] }}" id="3-{{ value['book_id'] }}">
@@ -117,7 +135,7 @@
             <label for="2-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> 
             
             <input type="radio" name="rating-{{ value['book_id'] }}" value="1-{{ value['book_id'] }}  " id="1-{{ value['book_id'] }}">
-            <label for="1-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label>
+            <label for="1-{{ value['book_id'] }}"><span class="fa fa-star" style='color:grey;'></span></label> -->
             </div>
         </div>
       </div>
