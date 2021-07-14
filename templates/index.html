@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><b>Rekomendasi</b>buku</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Step 1</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Step 2</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Recommendation</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <br>
+  <div class="genrescontainer">&nbsp;</div>
+  <form action="/step2" method="POST">
+  <div class="container-lg" id="selectionGenre">
+    
+  </div>
+  <br>
+  <div class='container-md float-lg-right'>
+    <input class='btn btn-success' type='submit' style='float:right; margin-right:150px;' value='Next'>
+  </div>
+  </form>
+  <!-- Optional JavaScript; choose one of the two! -->
+
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script>
+    const genres = ["Art", "Biography", "Business", "Chick Lit", "Children's", 
+        "Christian", "Classics", "Comics", "Contemporary", "Cookbooks", 
+        "Crime", "Ebooks", "Fantasy", "Fiction", 
+        "Graphic Novels", "Historical Fiction", "History", "Horror", 
+        "Humor and Comedy", "Manga", "Memoir", "Music", "Mystery", 
+        "Nonfiction", "Paranormal", "Philosophy", "Poetry", "Psychology", 
+        "Religion", "Romance", "Science", "Science Fiction", "Self Help", 
+        "Suspense", "Spirituality", "Sports", "Thriller", "Travel", "Young Adult"]
+    var text = ""
+    var box = document.getElementById("selectionGenre")
+    var genres_ = ""
+    var genreslower = ""
+    for (var i = 0; i < genres.length; i++) {
+    
+      genres_ = genres[i].replace(/\s/g, '');
+      genreslower = genres_.toLowerCase();
+      text += "<div class='form-check form-check-inline'><input class='btn-check' type='checkbox' name='genre' id='inlineCheckbox"+i+"' value='"+genreslower+"' autocomplete='off'><label class='btn btn-outline-success' style='width:150px;' for='inlineCheckbox"+i+"'>"+genres[i]+"</label></div>"
+            
+      console.log(genres[i])
+    }
+    box.innerHTML += text
+  </script>
+{% endblock %}
