@@ -14,7 +14,7 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#"><b>Rekomendasi</b>buku</a>
+        <a class="navbar-brand" href="/"><b>Rekomendasi</b>buku</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,67 +35,18 @@
     </nav>
     
     <br>
+    <div class="container-md" style="padding-top:20px;padding-bottom:20px;padding-left:20px;">
+      <h5>Top 20 Recommendation for your next read</h5>
+    </div>
     <div class="d-flex flex-wrap container-lg">
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
+        {% for index,row in book_recommendation.iterrows() : %}
+        <div class="card" style="width: 12rem; margin-left:20px; margin-top:20px;">
+            <img src="{{ row['image_url'] }}" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
             <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
+              <h4 class="card-text">{{ row['original_title'] }}</h4>
             </div>
         </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
-        <div class="card" style="width: 15rem; margin-left:20px; margin-top:20px;">
-            <img src="https://images-na.ssl-images-amazon.com/images/I/71-%2B%2BhbbERL._AC_SL1000_.jpg" class="card-img-top" alt="..." style="height:20rem; object-fit: cover;">
-            <div class="card-body">
-              <h4 class="card-text">Harry Potter and Sorcerers Stone</h4>
-            </div>
-        </div>
+        {% endfor %}
 
         
     </div>

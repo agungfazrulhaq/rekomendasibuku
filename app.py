@@ -1,20 +1,27 @@
 import pandas as pd
 import numpy as np
 import random
+import time
 import recommenderfilter as rf
+import method as mt
 from flask import Flask, render_template, url_for, request, redirect
 
 app = Flask(__name__)
 
-b = pd.read_csv("data/books.csv")
+b = pd.read_csv("data/books500.csv")
 book_df = b[['book_id','goodreads_book_id','original_title','authors','image_url','original_publication_year']]
 bookgenres = pd.read_csv("data/500bookgenres.csv")
 bookids = pd.read_csv("data/book500ids.csv")
+ratings = pd.read_csv("data/rtest.csv")
 genre_content = []
 ex20 = book_df.head(5)
 item_per_page = 25
 total_pages = 0
-ratings_given = pd.DataFrame(columns=['book_id','rating'])
+ratings_given = pd.DataFrame(columns=['user_id','book_id','rating'])
+
+randomed_ids = random.randint(0,200000)
+while randomed_ids in ratings['user_id'].unique() :
+    randomed_ids = random.randint(0,200000)
 
 @app.route('/giveratings', methods=['POST'])
 def give_rating() :
@@ -32,7 +39,7 @@ def give_rating() :
                 text = request.form.get('rating['+str(i)+']')
                 arr_txt = text.split("-")
                 if arr_txt[1] not in ratings_given['book_id'].unique() :
-                    ratings_given.loc[len(ratings_given)] = [arr_txt[1],arr_txt[0]]
+                    ratings_given.loc[len(ratings_given)] = [randomed_ids, arr_txt[1],arr_txt[0]]
                 else :
                     ratings_given.loc[ratings_given['book_id'] == arr_txt[1],'rating'] = arr_txt[0]
 
@@ -49,9 +56,11 @@ def step2() :
     if request.method == 'POST' :
         if len(genre_content) == 0 :
             genre_content = request.form.getlist('genre')
+            similar = rf.sortedsimilar(bookgenres,genre_content)
+            ex20 = pd.merge(similar, book_df, how='left', on='goodreads_book_id').head(250)
 
-        ex20 = book_df.head(215)
-        total_pages = (len(ex20) // item_per_page) + 1
+    
+    total_pages = (len(ex20) // item_per_page) + 1
     
     if page > len(ex20) // item_per_page :
         books = ex20.iloc[item_per_page*(page-1):]
@@ -60,9 +69,112 @@ def step2() :
     
     return render_template("book-list.html", ratings_given = ratings_given , books = books, total_pages = total_pages, page = page, genre_content = genre_content)
 
+@app.route('/search', methods=['POST'])
+def search() :
+    global ex20
+    if request.method == 'POST' :
+        keyword_ = request.form.get('search')
+        print(keyword_)
+        array_of_titles = []
+        arr_tit = book_df['original_title'].unique()
+        for x in range(len(arr_tit)) :
+            if keyword_ in str(arr_tit[x]) :
+                array_of_titles.append(str(arr_tit[x]))
+        ex20 = book_df[book_df['original_title'].isin(array_of_titles)]
+    
+    return redirect('/step2')
+
+@app.route('/recommendation')
+def recommendation() :
+    print("----")
+    print("Clustering Data")
+    print('----')
+    print('')
+    start = time.time()
+    datacluster = mt.fuzzykmodes(3, bookgenres, threshold=0.4)
+    print(datacluster.head(5))
+    dataclusterwid = pd.merge(datacluster, bookids, how='left', on='goodreads_book_id')
+    clusters_fuzzy = []
+    for i in range(3) :
+        clusters_fuzzy.append([])
+        
+    threshold=0.3
+    for det in range(len(datacluster)) :
+        for dt in range(3) :
+            if dataclusterwid.iloc[det]['membership'+str(dt)] > threshold :
+                clusters_fuzzy[dt].append(int(dataclusterwid.iloc[det]['book_id']))
+    
+    book500feature = pd.merge(bookids,bookgenres, on='goodreads_book_id')
+    ratings['book_id'] = ratings['book_id'].astype('int')
+    ratings_given['book_id'] = ratings_given['book_id'].astype('int')
+    ratings_given['rating'] = ratings_given['rating'].astype('int')
+    concatted = [ratings, ratings_given]
+    new_rating = pd.concat(concatted)
+    rating_matrix = new_rating.pivot(index = 'user_id', columns ='book_id', values = 'rating')
+    rating_matrix0 = rating_matrix.fillna(0)
+    new_cluster_ = []
+    for cl in clusters_fuzzy :
+        cls = np.array(cl)
+        clusters__ = []
+        for x in cls :
+            if x in rating_matrix0.columns :
+                clusters__.append(x)
+                
+        new_cluster_.append(clusters__)
+    
+    matrix_rating_arr_c = []
+
+    for cluster in new_cluster_ :
+        matrix_rating_arr_c.append(rating_matrix0[cluster])
+    
+    prediction_result_arr = []
+    for i in range(len(matrix_rating_arr_c)) :
+        prediction_result_arr.append(mt.recommending(randomed_ids,matrix_rating_arr_c[i],matrix_rating_arr_c,book500feature))
+        print("---")
+
+    prediction_result = pd.DataFrame(columns = ['book_id','rating_prediction'])
+    for index,row in book500feature.iterrows() :
+        arr_of_val = []
+        for i in range(len(prediction_result_arr)) :
+            if row['book_id'] in prediction_result_arr[i]['indexincl'].unique() :
+                arr_of_val.append(prediction_result_arr[i].loc[prediction_result_arr[i]['indexincl'] == row['book_id']]['ratingprediksi'].values[0])
+        rate = 0
+        if len(arr_of_val) != 0 :
+            sumall = 0
+            for xj in arr_of_val :
+                sumall += xj
+            rate = sumall/len(arr_of_val)
+        else :
+            rate = 0
+        prediction_result.loc[len(prediction_result)] = [str(int(row['book_id'])),rate]
+
+    prediction_result['book_id'] = prediction_result['book_id'].astype('int')
+    ratings_given['book_id'] = ratings_given['book_id'].astype('int')
+    book_df['book_id'] = book_df['book_id'].astype('int')
+
+    recom = prediction_result.sort_values('rating_prediction',ascending=False)
+    book_recommendation = pd.merge(recom,book_df, how='left', on='book_id').head(20)
+
+    maedf = pd.merge(prediction_result, ratings_given, how='right', on='book_id')
+    maesum = 0
+    for index,row in maedf.iterrows() :
+        maesum += abs(row['rating_prediction']-int(row['rating']))
+
+    maescore = maesum/len(maedf)
+    end = time.time()
+    print('Recommendation Given')
+    print('-----')
+    print('Running Time : ', abs(start-end))
+    print('MAE Score : ', maescore)
+    print('-----')
+    print('book_recommendation : ', recom.head(20))
+    return render_template('Recommendation.html', book_recommendation = book_recommendation, maescore = maescore)
+
 @app.route('/', methods=['POST','GET'])
 def index() :
+    global genre_content
+    genre_content = []
     return render_template("index.html")
 
 if __name__ == "__main__" :
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

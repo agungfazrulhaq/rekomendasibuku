@@ -2,25 +2,35 @@ import pandas as pd
 import numpy as np
 import random
 
-def sortedsimilar(book, bookgenres, books) :
-    book = [-1,'a filter']
-    zeros = []
-    for i in range(len(bookgenres.columns)-2) :
-        zeros.append(0)
-    
-    bookgenres.loc[len(bookgenres)] = book + zeros
-    bookgenres["distance"] = np.nan
+def sortedsimilar(bookgenres, genres) :
+    bookgin = bookgenres
+    ayye = [-1,'a_filter']
+    t = 0
+    for x in bookgenres.columns :
+        if t > 1 :
+            if x in genres :
+                ayye.append(1)
+            else :
+                ayye.append(0)
+        t += 1
+
+    bookgin["distance"] = np.nan
     for index,row in bookgenres.iterrows() :
         book_ = row.values
-        book_s = bookgenres.loc[len(bookgenres)-1].values
+        print(book_)
+        book_s = ayye
+        print(book_)
+        print(book_s)
+        print(len(book_), len(book_s))
         dissim = 0
-        for i in range(2,len(bookgenres.column)-1) :
-            dissim += abs(book[i]-book_s[i])
-        row["distance"] = dissim
+        for i in range(2,len(bookgenres.columns)-1) :
+            if book_[i] == 1 and book_s[i] == 1 :
+                dissim += 1
+        bookgin.loc[index,"distance"] = dissim
     
-    bookgenres = bookgenres.drop([len(bookgenres)-1])
-    sortedbgn = bookgenres.sort_values(by=["distance"], ascending=True)
+    bookgin = bookgenres.drop([len(bookgenres)-1])
+    sortedbgn = bookgin.sort_values(by=["distance"], ascending=False)
 
-    sorted = sortedbgn[["goodreads_book_id","title"]]
+    sorted = sortedbgn[["goodreads_book_id","title","distance"]]
 
     return sorted
