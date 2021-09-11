@@ -5,12 +5,22 @@ import time
 import recommenderfilter as rf
 import method as mt
 from flask import Flask, render_template, url_for, request, redirect
+import numba
+from numba import vectorize, jit, cuda, njit
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning, NumbaWarning
+import warnings
+
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaWarning)
+
 
 app = Flask(__name__)
 
 b = pd.read_csv("data/books500.csv")
 book_df = b[['book_id','goodreads_book_id','original_title','authors','image_url','original_publication_year']]
 bookgenres = pd.read_csv("data/500bookgenres.csv")
+dataclusterwid = pd.read_csv('data/500Fuzzy25ClusterMembershipValue.csv')
 bookids = pd.read_csv("data/book500ids.csv")
 ratings = pd.read_csv("data/rtest.csv")
 genre_content = []
@@ -22,6 +32,7 @@ ratings_given = pd.DataFrame(columns=['user_id','book_id','rating'])
 randomed_ids = random.randint(0,200000)
 while randomed_ids in ratings['user_id'].unique() :
     randomed_ids = random.randint(0,200000)
+
 
 @app.route('/giveratings', methods=['POST'])
 def give_rating() :
@@ -85,22 +96,24 @@ def search() :
     return redirect('/step2')
 
 @app.route('/recommendation')
+
+@numba.jit
 def recommendation() :
-    print("----")
-    print("Clustering Data")
-    print('----')
-    print('')
+    # print("----")
+    # print("Clustering Data")
+    # print('----')
+    # print('')
     start = time.time()
-    datacluster = mt.fuzzykmodes(3, bookgenres, threshold=0.4)
-    print(datacluster.head(5))
-    dataclusterwid = pd.merge(datacluster, bookids, how='left', on='goodreads_book_id')
+    # datacluster = mt.fuzzykmodes(3, bookgenres, threshold=0.4)
+    # print(datacluster.head(5))
+    k_cluster = 25
     clusters_fuzzy = []
-    for i in range(3) :
+    for i in range(k_cluster) :
         clusters_fuzzy.append([])
         
-    threshold=0.3
-    for det in range(len(datacluster)) :
-        for dt in range(3) :
+    threshold=1/k_cluster
+    for det in range(len(dataclusterwid)) :
+        for dt in range(k_cluster) :
             if dataclusterwid.iloc[det]['membership'+str(dt)] > threshold :
                 clusters_fuzzy[dt].append(int(dataclusterwid.iloc[det]['book_id']))
     
@@ -108,6 +121,7 @@ def recommendation() :
     ratings['book_id'] = ratings['book_id'].astype('int')
     ratings_given['book_id'] = ratings_given['book_id'].astype('int')
     ratings_given['rating'] = ratings_given['rating'].astype('int')
+    print(ratings_given)
     concatted = [ratings, ratings_given]
     new_rating = pd.concat(concatted)
     rating_matrix = new_rating.pivot(index = 'user_id', columns ='book_id', values = 'rating')
@@ -153,7 +167,12 @@ def recommendation() :
     book_df['book_id'] = book_df['book_id'].astype('int')
 
     recom = prediction_result.sort_values('rating_prediction',ascending=False)
-    book_recommendation = pd.merge(recom,book_df, how='left', on='book_id').head(20)
+    book_recommendation = pd.merge(recom,book_df, how='left', on='book_id')
+
+    for i in range(k_cluster) :
+        book_recommendation = book_recommendation[~book_recommendation['book_id'].isin(mt.rated_by_user(randomed_ids, matrix_rating_arr_c[i]))]
+
+    book_recommendation = book_recommendation.head(20)
 
     maedf = pd.merge(prediction_result, ratings_given, how='right', on='book_id')
     maesum = 0
@@ -173,7 +192,10 @@ def recommendation() :
 @app.route('/', methods=['POST','GET'])
 def index() :
     global genre_content
+    global ratings_given
+
     genre_content = []
+    ratings_given = pd.DataFrame(columns=['user_id','book_id','rating'])
     return render_template("index.html")
 
 if __name__ == "__main__" :

@@ -2,13 +2,22 @@ import pandas as pd
 import numpy as np
 import random
 import math
+import numba
+from numba import vectorize, jit, njit, cuda
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+import warnings
 
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+
+@numba.jit
 def random_sum_to(n, num_terms = None):
     num_terms = (num_terms or random.randint(2, n)) - 1
     a = random.sample(range(1, n), num_terms) + [0, n]
     list.sort(a)
     return [a[i+1] - a[i] for i in range(len(a) - 1)]
 
+@numba.jit
 def funcobj(w,z,alph,bookgenres) :
     fwz = 0
     for it in range(len(bookgenres)) :
@@ -26,6 +35,8 @@ def funcobj(w,z,alph,bookgenres) :
     
     return fwz
 
+
+@numba.jit
 def membershipdataframe(k,w,bookgenres) :
     
     newdf = bookgenres[['goodreads_book_id']]
@@ -39,6 +50,9 @@ def membershipdataframe(k,w,bookgenres) :
     
     return newdf
 
+
+
+@numba.jit
 def newCentroid(k,mem,bookgenres,threshold) :
     clusters = []
     for j in range(k) :
@@ -69,6 +83,9 @@ def newCentroid(k,mem,bookgenres,threshold) :
         
     return new_centroid
 
+
+
+@numba.jit
 def newMembershipVal(k,centroids,bookgenres,alph) :
     theWn = []
     for index,row in bookgenres.iterrows() :
@@ -108,6 +125,9 @@ def newMembershipVal(k,centroids,bookgenres,alph) :
         theWn.append(wli)
     return theWn
 
+
+
+@numba.jit
 def fuzzykmodes(k, bookgenres, alph=1.2, threshold=0.2) :
     center = []
     for i in range(k) :
@@ -157,6 +177,9 @@ def fuzzykmodes(k, bookgenres, alph=1.2, threshold=0.2) :
                 fwz = funcobj(w0,z0,alph,bookgenres)
     return memberdf
     
+
+
+@numba.jit
 def pearsonSim(i,j,bookset) :
     ri_sum = []
     rj_sum = []
@@ -193,18 +216,26 @@ def pearsonSim(i,j,bookset) :
     
     return pearson_sim
 
+
+
+@numba.jit
 def featsim(i,j,arrgenres) :
     sumfeat = 0
-    for x in range(3,len(arrgenres.loc[arrgenres.book_id == i].values[0])) :
-        xi = arrgenres.loc[arrgenres.book_id == i].values[0][x]
-        xj = arrgenres.loc[arrgenres.book_id == j].values[0][x]
+    booki = arrgenres.loc[arrgenres.book_id == i].values[0]
+    bookj = arrgenres.loc[arrgenres.book_id == j].values[0]
+    for x in range(3,len(booki)) :
+        xi = booki[x]
+        xj = bookj[x]
         sumfeat+= abs(xi-xj)
     
-    return 1-(sumfeat/(len(arrgenres.loc[arrgenres.book_id == i].values[0])-3))
+    return 1-(sumfeat/(len(booki)-3))
 
+@numba.jit
 def mixedsim(i,j,arrgenres,bookset, c=0.4) :
     return (c*pearsonSim(i,j,bookset)) + ((1-c)*featsim(i,j,arrgenres))
 
+
+@numba.jit
 def rated_by_user(user_id,bookset) :
     book_ids = []
     for j in bookset.columns :
@@ -213,6 +244,8 @@ def rated_by_user(user_id,bookset) :
 
     return book_ids
 
+
+@numba.jit
 def recommending(user_id,cluster,clusters,book_feat) :
     rated_by_u = rated_by_user(user_id,cluster)
     indexbuku = []

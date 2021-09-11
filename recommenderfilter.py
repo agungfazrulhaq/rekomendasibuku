@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 import random
+import numba
+from numba import vectorize, jit, njit, cuda
 
+@numba.jit
 def sortedsimilar(bookgenres, genres) :
     bookgin = bookgenres
     ayye = [-1,'a_filter']
@@ -17,11 +20,7 @@ def sortedsimilar(bookgenres, genres) :
     bookgin["distance"] = np.nan
     for index,row in bookgenres.iterrows() :
         book_ = row.values
-        print(book_)
         book_s = ayye
-        print(book_)
-        print(book_s)
-        print(len(book_), len(book_s))
         dissim = 0
         for i in range(2,len(bookgenres.columns)-1) :
             if book_[i] == 1 and book_s[i] == 1 :

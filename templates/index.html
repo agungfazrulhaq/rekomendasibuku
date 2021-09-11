@@ -43,14 +43,9 @@
 
   <!-- Option 1: Bootstrap Bundle with Popper -->
   <script>
-    const genres = ["Art", "Biography", "Business", "Chick Lit", "Children's", 
-        "Christian", "Classics", "Comics", "Contemporary", "Cookbooks", 
-        "Crime", "Ebooks", "Fantasy", "Fiction", 
-        "Graphic Novels", "Historical Fiction", "History", "Horror", 
-        "Humor and Comedy", "Manga", "Memoir", "Music", "Mystery", 
-        "Nonfiction", "Paranormal", "Philosophy", "Poetry", "Psychology", 
-        "Religion", "Romance", "Science", "Science Fiction", "Self Help", 
-        "Suspense", "Spirituality", "Sports", "Thriller", "Travel", "Young Adult"]
+    const genres = ['Biography','Classics','Contemporary','Crime','Ebooks','Fantasy','Fiction','History',
+      'Horror','Memoir','Mystery','Nonfiction','Paranormal','Philosophy','Psychology','Religion','Romance',
+      'Science','Suspense','Thriller']
     var text = ""
     var box = document.getElementById("selectionGenre")
     var genres_ = ""
@@ -59,7 +54,7 @@
     
       genres_ = genres[i].replace(/\s/g, '');
       genreslower = genres_.toLowerCase();
-      text += "<div class='form-check form-check-inline'><input class='btn-check' type='checkbox' name='genre' id='inlineCheckbox"+i+"' value='"+genreslower+"' autocomplete='off'><label class='btn btn-outline-success' style='width:150px;' for='inlineCheckbox"+i+"'>"+genres[i]+"</label></div>"
+      text += "<div class='form-check form-check-inline' style='margin-bottom:20px;'><input class='btn-check' type='checkbox' name='genre' id='inlineCheckbox"+i+"' value='"+genreslower+"' autocomplete='off'><label class='btn btn-outline-success' style='width:150px;' for='inlineCheckbox"+i+"'>"+genres[i]+"</label></div>"
             
       console.log(genres[i])
     }
