@@ -3,5 +3,5 @@ web-app sistem rekomendasi buku dengan fuzzy clustering dan collaborative-filter
 
 #Requirement/Dependencies
 - Python
-- Pandas Dataframe Library
+- Pandas
 - Flask
